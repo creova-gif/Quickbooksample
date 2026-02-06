@@ -1,0 +1,283 @@
+{
+  "projectName": "EA Accounting Platform",
+  "version": "1.0.0",
+  "description": "Full-stack accounting platform for East Africa (Kenya, Uganda, Tanzania, Rwanda, Burundi). Web + React Native + Electron desktop. Includes accounting-safe ledger, invoices, payroll, inventory, multi-branch, tax sync, and licensing.",
+  "techStack": {
+    "frontend": {
+      "web": "React + TypeScript + Tailwind CSS + Vite",
+      "mobile": "React Native + TypeScript",
+      "desktop": "Electron + React"
+    },
+    "backend": {
+      "api": "Node.js + Express + TypeScript",
+      "database": "PostgreSQL (cloud) / SQLite (on-prem)",
+      "queue": "Redis / In-memory (offline)"
+    },
+    "storage": {
+      "web": "localStorage + IndexedDB",
+      "mobile": "AsyncStorage + SQLite",
+      "desktop": "Electron Store + SQLite"
+    }
+  },
+  "modules": [
+    {
+      "name": "TransactionForm",
+      "priority": 1,
+      "schema": "Transaction{id, businessId, type, amount, vatRate, vatAmount, totalAmount, currency, categoryId, description, paymentMethod, transactionDate, reference, createdBy, createdAt, status}",
+      "ui": "TransactionFormModal (Web + RN)",
+      "ledgerLogic": "post to ledger with debit/credit ensuring total debits = total credits",
+      "audit": "log create/update/post/reverse",
+      "offlineSupport": "localStorage (Web) / AsyncStorage (RN), queued sync",
+      "licenseGating": "module 'accounting' required",
+      "apiEndpoints": [
+        "POST /api/v1/transactions",
+        "GET /api/v1/transactions",
+        "GET /api/v1/transactions/:id",
+        "PUT /api/v1/transactions/:id",
+        "POST /api/v1/transactions/:id/post",
+        "POST /api/v1/transactions/:id/reverse"
+      ],
+      "cursorPrompt": "Generate TransactionForm module with offline-first, ledger posting, audit log, license gating. Include double-entry validation, VAT auto-calculation, and sync queue."
+    },
+    {
+      "name": "InvoiceForm",
+      "priority": 2,
+      "schema": "Invoice{id, invoiceNumber, businessId, customerId, currency, issueDate, dueDate, status, subtotal, vatRate, vatAmount, totalAmount, balanceDue, items, notes, createdBy, createdAt, taxSyncStatus, reversalOf, reversedBy, complianceData}",
+      "ui": "InvoiceFormModal (Web + RN)",
+      "ledgerLogic": "double-entry ledger posting on issue and payment, reversal creates inverse entries",
+      "audit": "log every state change (draft, issued, paid, reversed)",
+      "taxSync": "queue for EFRIS/TIMS/VFD/EBM, retry on failure, update entity taxSyncStatus",
+      "offlineSupport": "queue invoices offline, sync when network available",
+      "licenseGating": "module 'invoicing' required",
+      "apiEndpoints": [
+        "POST /api/v1/invoices",
+        "GET /api/v1/invoices",
+        "GET /api/v1/invoices/:id",
+        "PUT /api/v1/invoices/:id",
+        "POST /api/v1/invoices/:id/issue",
+        "POST /api/v1/invoices/:id/reverse",
+        "POST /api/v1/invoices/:id/payments"
+      ],
+      "cursorPrompt": "Generate InvoiceForm module with double-entry ledger, audit log, reversal flow, offline tax authority sync. Include invoice numbering, payment tracking, and compliance data fields for TIMS/EFRIS/VFD/EBM."
+    },
+    {
+      "name": "ChartOfAccounts",
+      "priority": 3,
+      "schema": "Account{id, code, name, type, currency, parentId, country, isTaxRelevant, isSystem, createdAt, updatedAt}",
+      "ui": "Account management interface (Web + RN)",
+      "audit": "log account create/update/delete",
+      "features": [
+        "Country-specific default accounts",
+        "Hierarchical structure (parent/child)",
+        "Tax-relevant flag for VAT accounts",
+        "Multi-currency support",
+        "System accounts (non-deletable)"
+      ],
+      "apiEndpoints": [
+        "POST /api/v1/accounts",
+        "GET /api/v1/accounts",
+        "GET /api/v1/accounts/:id",
+        "PUT /api/v1/accounts/:id",
+        "DELETE /api/v1/accounts/:id"
+      ],
+      "cursorPrompt": "Generate country-specific Chart of Accounts with tax flags and hierarchy for EA countries (Kenya, Uganda, Tanzania, Rwanda, Burundi). Include default accounts per country, account type validation, and parent/child relationships."
+    },
+    {
+      "name": "Payroll",
+      "priority": 4,
+      "schema": "Employee{id, name, employeeId, department, salary, taxRate, currency, country}, PayrollRun{id, month, year, employeeId, grossSalary, taxAmount, netSalary, status, ledgerPosted, createdAt}",
+      "ui": "PayrollForm + PayrollRun modal (Web + RN)",
+      "ledgerLogic": "post payroll to ledger automatically (Debit: Salary Expense, Credit: Salary Payable + Tax Payable)",
+      "audit": "log payroll creation and processing",
+      "offlineSupport": "support draft payroll offline",
+      "licenseGating": "module 'payroll' required",
+      "countrySpecific": {
+        "Kenya": "PAYE tax brackets, NHIF, NSSF",
+        "Uganda": "PAYE, NSSF",
+        "Tanzania": "PAYE, NSSF",
+        "Rwanda": "PAYE",
+        "Burundi": "PAYE"
+      },
+      "apiEndpoints": [
+        "POST /api/v1/employees",
+        "GET /api/v1/employees",
+        "POST /api/v1/payroll/run",
+        "GET /api/v1/payroll/runs",
+        "GET /api/v1/payroll/:id/payslip"
+      ],
+      "cursorPrompt": "Generate payroll module with country-specific taxes (PAYE, NHIF, NSSF for Kenya/Uganda/Tanzania), ledger posting, payslip generation, offline support. Include tax calculation engine per country."
+    },
+    {
+      "name": "Inventory",
+      "priority": 5,
+      "schema": "InventoryItem{id, name, sku, cost, price, quantityOnHand, currency, ledgerAccountId, reorderLevel}, InventoryTransaction{id, itemId, type, quantity, cost, reference, createdAt}",
+      "ui": "Inventory management + transaction modal (Web + RN)",
+      "ledgerLogic": "post COGS automatically on sale (Debit: COGS, Credit: Inventory)",
+      "audit": "log all inventory changes",
+      "offlineSupport": "queue adjustments offline",
+      "licenseGating": "module 'inventory' required",
+      "features": [
+        "Stock tracking (FIFO/LIFO/Weighted Average)",
+        "Low stock alerts",
+        "Barcode scanning (mobile)",
+        "Multi-warehouse support"
+      ],
+      "apiEndpoints": [
+        "POST /api/v1/inventory/items",
+        "GET /api/v1/inventory/items",
+        "POST /api/v1/inventory/adjustments",
+        "GET /api/v1/inventory/movements"
+      ],
+      "cursorPrompt": "Generate inventory module tracking stock, calculating COGS (FIFO method), ledger integration, offline support. Include barcode scanning for mobile, low stock alerts, and multi-warehouse tracking."
+    },
+    {
+      "name": "MultiBranch",
+      "priority": 6,
+      "schema": "Business{id, name, country, currency, branches}, Branch{id, name, businessId, location, ledgerAccounts, currency}",
+      "ui": "Branch management interface",
+      "ledgerLogic": "consolidate ledgers per branch/business",
+      "audit": "log branch creation and changes",
+      "features": [
+        "Branch-level profit & loss",
+        "Consolidated financial statements",
+        "Inter-branch transfers",
+        "Multi-currency support"
+      ],
+      "apiEndpoints": [
+        "POST /api/v1/branches",
+        "GET /api/v1/branches",
+        "GET /api/v1/branches/:id/ledger",
+        "GET /api/v1/businesses/:id/consolidated-ledger"
+      ],
+      "cursorPrompt": "Generate multi-branch support, consolidate ledger and reports per branch, support multi-currency, per-country VAT. Include inter-branch transfer tracking and consolidated reporting."
+    },
+    {
+      "name": "ElectronInstaller",
+      "priority": 7,
+      "ui": "Electron-based installer wizard",
+      "features": [
+        "7-screen wizard (Welcome, Deployment Type, Modules, Country, DB Setup, Summary, Complete)",
+        "Deployment type selection: Cloud / Private / On-Premise",
+        "Module selection via license",
+        "Country selection for tax adapters",
+        "Local DB setup (PostgreSQL / SQLite)",
+        "Docker Compose generation",
+        "Offline support",
+        "License validation",
+        "Auto-update mechanism"
+      ],
+      "screens": [
+        "Welcome & License Agreement",
+        "Deployment Type (Cloud/Private/On-Prem)",
+        "Module Selection (based on license)",
+        "Country Configuration (EA countries)",
+        "Database Setup (PostgreSQL/SQLite)",
+        "Configuration Summary",
+        "Installation Progress",
+        "Complete & Launch"
+      ],
+      "cursorPrompt": "Generate Electron installer with multi-step wizard, license module gating, offline setup, local DB initialization, cross-platform (Windows/Mac/Linux). Include Docker Compose file generation for on-prem deployments."
+    }
+  ],
+  "workflow": [
+    "Quick Action buttons open Transaction / Invoice / Payroll modals",
+    "Forms auto-save offline and queue sync",
+    "Ledger posts automatically on submit",
+    "Audit log records all changes",
+    "Tax Sync queue handles EFRIS/TIMS/VFD/EBM integration",
+    "License gating enables/disables features",
+    "Multi-branch consolidation available for enterprise accounts",
+    "Electron installer wraps web + RN modules for desktop deployment"
+  ],
+  "licenseManagement": {
+    "licensePayload": "{modules:[\"accounting\",\"invoicing\",\"payroll\",\"inventory\"],userLimit:50,deployment:\"onprem\",tier:\"enterprise\",expires:\"YYYY-MM-DD\"}",
+    "gatingLogic": "Disable Quick Action buttons and modules if license not active",
+    "tiers": {
+      "starter": {
+        "modules": ["accounting", "invoicing"],
+        "userLimit": 5,
+        "price": "$29/month"
+      },
+      "professional": {
+        "modules": ["accounting", "invoicing", "tax", "payroll"],
+        "userLimit": 25,
+        "price": "$99/month"
+      },
+      "enterprise": {
+        "modules": ["accounting", "invoicing", "tax", "payroll", "inventory", "multibranch"],
+        "userLimit": "unlimited",
+        "price": "Custom"
+      }
+    }
+  },
+  "offlineSupport": {
+    "web": "localStorage queue for transactions, invoices, payroll, inventory adjustments",
+    "mobile": "AsyncStorage queue, sync worker, retry on reconnect",
+    "desktop": "local DB queue with Electron service worker"
+  },
+  "auditAndCompliance": {
+    "auditLogSchema": "AuditLog{id, entityType, entityId, action, before?, after?, performedBy, performedAt, metadata?}",
+    "reversalFlow": "Never delete posted records; create reversal entries linked to original",
+    "complianceReports": [
+      "VAT Return (all countries)",
+      "PAYE Return (all countries)",
+      "Audit Trail Export",
+      "Financial Statements (GAAP/IFRS)",
+      "Tax Authority Submission Status"
+    ]
+  },
+  "taxSync": {
+    "queueSchema": "TaxSyncQueue{id, entityType, entityId, payload, authority, status, retries, lastAttempt, errorMessage, syncedAt}",
+    "workerLogic": "Sync pending items to tax authorities, retry on failure, update status",
+    "authorities": [
+      {
+        "name": "TIMS",
+        "country": "Kenya",
+        "endpoint": "/api/v1/tax-sync/tims",
+        "retryCount": 5,
+        "retryDelay": "exponential backoff"
+      },
+      {
+        "name": "EFRIS",
+        "country": "Uganda",
+        "endpoint": "/api/v1/tax-sync/efris",
+        "retryCount": 5,
+        "retryDelay": "exponential backoff"
+      },
+      {
+        "name": "VFD",
+        "country": "Tanzania",
+        "endpoint": "/api/v1/tax-sync/vfd",
+        "retryCount": 5,
+        "retryDelay": "exponential backoff"
+      },
+      {
+        "name": "EBM",
+        "country": "Rwanda",
+        "endpoint": "/api/v1/tax-sync/ebm",
+        "retryCount": 5,
+        "retryDelay": "exponential backoff"
+      }
+    ]
+  },
+  "database": {
+    "tables": [
+      "businesses",
+      "branches",
+      "users",
+      "accounts (chart of accounts)",
+      "transactions",
+      "invoices",
+      "invoice_items",
+      "customers",
+      "employees",
+      "payroll_runs",
+      "inventory_items",
+      "inventory_transactions",
+      "ledger_entries",
+      "audit_logs",
+      "tax_sync_queue",
+      "licenses"
+    ]
+  }
+}

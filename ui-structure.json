@@ -1,0 +1,621 @@
+{
+  "name": "EA Accounting Platform UI",
+  "type": "PROJECT",
+  "version": "1.0.0",
+  "description": "Complete UI component structure for East Africa Accounting Platform",
+  "designSystem": {
+    "colors": {
+      "primary": "#2563eb",
+      "success": "#10b981",
+      "warning": "#f59e0b",
+      "danger": "#ef4444",
+      "neutral": "#6b7280"
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px"
+    },
+    "typography": {
+      "heading1": "32px",
+      "heading2": "24px",
+      "heading3": "20px",
+      "body": "16px",
+      "caption": "14px"
+    }
+  },
+  "children": [
+    {
+      "name": "Dashboard",
+      "type": "FRAME",
+      "path": "/src/app/components/dashboard/Dashboard.tsx",
+      "children": [
+        {
+          "name": "QuickActions",
+          "type": "COMPONENT",
+          "path": "/src/app/components/dashboard/QuickActions.tsx",
+          "description": "Quick action buttons for common tasks",
+          "licenseGating": true,
+          "children": [
+            {
+              "name": "RecordSaleButton",
+              "type": "BUTTON",
+              "states": ["enabled", "disabled"],
+              "onClick": "openIncomeModal",
+              "licenseRequired": "accounting",
+              "tooltip": "Record a sale transaction"
+            },
+            {
+              "name": "AddExpenseButton",
+              "type": "BUTTON",
+              "states": ["enabled", "disabled"],
+              "onClick": "openExpenseModal",
+              "licenseRequired": "accounting",
+              "tooltip": "Add an expense"
+            },
+            {
+              "name": "NewInvoiceButton",
+              "type": "BUTTON",
+              "states": ["enabled", "disabled"],
+              "onClick": "openInvoiceModal",
+              "licenseRequired": "invoicing",
+              "tooltip": "Create a new invoice"
+            },
+            {
+              "name": "ProcessPayrollButton",
+              "type": "BUTTON",
+              "states": ["enabled", "disabled"],
+              "onClick": "openPayrollModal",
+              "licenseRequired": "payroll",
+              "tooltip": "Process payroll"
+            },
+            {
+              "name": "InventoryAdjustmentButton",
+              "type": "BUTTON",
+              "states": ["enabled", "disabled"],
+              "onClick": "openInventoryModal",
+              "licenseRequired": "inventory",
+              "tooltip": "Adjust inventory"
+            }
+          ]
+        },
+        {
+          "name": "BranchSelector",
+          "type": "COMPONENT",
+          "path": "/src/app/components/dashboard/BranchSelector.tsx",
+          "description": "Branch selection and multi-branch summary",
+          "licenseRequired": "multibranch",
+          "children": [
+            {
+              "name": "BranchDropdown",
+              "type": "DROPDOWN",
+              "options": "dynamic (from API)"
+            },
+            {
+              "name": "MultiBranchSummary",
+              "type": "TABLE",
+              "columns": ["Branch", "Revenue", "Expenses", "Profit"]
+            }
+          ]
+        },
+        {
+          "name": "KeyMetrics",
+          "type": "COMPONENT",
+          "path": "/src/app/components/dashboard/KeyMetrics.tsx",
+          "children": [
+            { "name": "MoneyInCard", "type": "CARD" },
+            { "name": "MoneyOutCard", "type": "CARD" },
+            { "name": "ProfitCard", "type": "CARD" },
+            { "name": "BalanceDueCard", "type": "CARD" }
+          ]
+        },
+        {
+          "name": "RecentActivity",
+          "type": "COMPONENT",
+          "path": "/src/app/components/dashboard/RecentActivity.tsx",
+          "children": [
+            { "name": "TransactionsList", "type": "LIST" }
+          ]
+        },
+        {
+          "name": "SyncStatusIndicator",
+          "type": "COMPONENT",
+          "path": "/src/app/components/dashboard/SyncStatusIndicator.tsx",
+          "states": ["all_synced", "pending", "error"],
+          "integrations": ["offlineQueue", "taxSyncQueue"]
+        }
+      ]
+    },
+    {
+      "name": "TransactionFormModal",
+      "type": "MODAL",
+      "path": "/src/app/components/transactions/TransactionFormModal.tsx",
+      "width": "600px",
+      "integrations": {
+        "ledger": "postTransactionToLedger",
+        "audit": "logTransactionCreated",
+        "offline": "saveOffline",
+        "vat": "calculateVAT"
+      },
+      "children": [
+        {
+          "name": "Header",
+          "type": "TEXT",
+          "dynamic": "type => 'Record Sale' | 'Add Expense'",
+          "variant": "heading2"
+        },
+        {
+          "name": "TypeSelector",
+          "type": "TABS",
+          "options": ["income", "expense"],
+          "icon": ["ArrowUpRight", "ArrowDownRight"]
+        },
+        {
+          "name": "AmountInput",
+          "type": "INPUT",
+          "inputType": "number",
+          "label": "Amount",
+          "required": true,
+          "validation": "amount > 0",
+          "onChange": "recalculateVAT"
+        },
+        {
+          "name": "CategoryDropdown",
+          "type": "DROPDOWN",
+          "label": "Category",
+          "required": true,
+          "options": "dynamic (income/expense categories based on type)"
+        },
+        {
+          "name": "VATDisplay",
+          "type": "TEXT",
+          "label": "VAT",
+          "computed": "amount × vatRate",
+          "readonly": true,
+          "formula": "calculateVAT(amount, business.country, business.vatRegistered)"
+        },
+        {
+          "name": "TotalDisplay",
+          "type": "TEXT",
+          "label": "Total Amount",
+          "computed": "amount + vatAmount",
+          "readonly": true,
+          "variant": "bold"
+        },
+        {
+          "name": "PaymentMethod",
+          "type": "DROPDOWN",
+          "label": "Payment Method",
+          "required": true,
+          "options": "dynamic (country-specific: M-Pesa, Airtel, Cash, Bank)"
+        },
+        {
+          "name": "DatePicker",
+          "type": "DATE",
+          "label": "Transaction Date",
+          "required": true,
+          "defaultValue": "today"
+        },
+        {
+          "name": "ReferenceInput",
+          "type": "INPUT",
+          "label": "Reference (Optional)",
+          "placeholder": "Receipt #, PO #, etc."
+        },
+        {
+          "name": "DescriptionInput",
+          "type": "TEXTAREA",
+          "label": "Description",
+          "required": true,
+          "rows": 3
+        },
+        {
+          "name": "SubmitButton",
+          "type": "BUTTON",
+          "label": "Save Transaction",
+          "variant": "primary",
+          "onClick": "handleSubmit",
+          "disabled": "!isValid || isSubmitting"
+        },
+        {
+          "name": "CancelButton",
+          "type": "BUTTON",
+          "label": "Cancel",
+          "variant": "secondary",
+          "onClick": "closeModal"
+        },
+        {
+          "name": "SyncStatusBadge",
+          "type": "BADGE",
+          "states": {
+            "pending": { "label": "Pending sync", "color": "warning" },
+            "synced": { "label": "Synced ✓", "color": "success" },
+            "failed": { "label": "Sync failed", "color": "danger" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "InvoiceFormModal",
+      "type": "MODAL",
+      "path": "/src/app/components/invoices/InvoiceFormModal.tsx",
+      "width": "800px",
+      "integrations": {
+        "ledger": "postInvoiceToLedger",
+        "audit": "logInvoiceCreated",
+        "taxSync": "queueInvoiceSync",
+        "vat": "calculateVAT"
+      },
+      "children": [
+        {
+          "name": "Header",
+          "type": "TEXT",
+          "dynamic": "status === 'draft' ? 'New Invoice' : `Invoice ${invoiceNumber}`",
+          "variant": "heading2"
+        },
+        {
+          "name": "InvoiceNumberDisplay",
+          "type": "TEXT",
+          "label": "Invoice #",
+          "computed": "auto-generated (server-side)",
+          "readonly": true
+        },
+        {
+          "name": "CustomerSelect",
+          "type": "DROPDOWN",
+          "label": "Customer",
+          "required": true,
+          "searchable": true,
+          "options": "dynamic (from customers API)",
+          "allowCreate": true
+        },
+        {
+          "name": "CustomerDetails",
+          "type": "GROUP",
+          "children": [
+            { "name": "CustomerEmail", "type": "INPUT", "label": "Email" },
+            { "name": "CustomerPhone", "type": "INPUT", "label": "Phone" },
+            { "name": "CustomerAddress", "type": "TEXTAREA", "label": "Address" },
+            { "name": "CustomerTaxId", "type": "INPUT", "label": "Tax ID / PIN" }
+          ]
+        },
+        {
+          "name": "InvoiceItemsTable",
+          "type": "TABLE",
+          "columns": [
+            { "field": "description", "label": "Description", "type": "text" },
+            { "field": "quantity", "label": "Qty", "type": "number" },
+            { "field": "unitPrice", "label": "Unit Price", "type": "currency" },
+            { "field": "lineTotal", "label": "Total", "type": "currency", "computed": "qty × price" },
+            { "field": "actions", "label": "", "type": "actions" }
+          ],
+          "actions": ["edit", "delete"],
+          "addRow": true
+        },
+        {
+          "name": "SubtotalDisplay",
+          "type": "TEXT",
+          "label": "Subtotal",
+          "computed": "sum(items.lineTotal)",
+          "readonly": true
+        },
+        {
+          "name": "VATRateDisplay",
+          "type": "TEXT",
+          "label": "VAT Rate",
+          "computed": "business.vatRate (e.g., 16%)",
+          "readonly": true
+        },
+        {
+          "name": "VATDisplay",
+          "type": "TEXT",
+          "label": "VAT Amount",
+          "computed": "subtotal × vatRate",
+          "readonly": true
+        },
+        {
+          "name": "TotalDisplay",
+          "type": "TEXT",
+          "label": "Total Amount",
+          "computed": "subtotal + vatAmount",
+          "readonly": true,
+          "variant": "bold",
+          "size": "large"
+        },
+        {
+          "name": "BalanceDueDisplay",
+          "type": "TEXT",
+          "label": "Balance Due",
+          "computed": "totalAmount - payments",
+          "readonly": true,
+          "variant": "bold"
+        },
+        {
+          "name": "IssueDatePicker",
+          "type": "DATE",
+          "label": "Issue Date",
+          "required": true,
+          "defaultValue": "today"
+        },
+        {
+          "name": "DueDatePicker",
+          "type": "DATE",
+          "label": "Due Date",
+          "required": true,
+          "defaultValue": "today + 30 days"
+        },
+        {
+          "name": "NotesInput",
+          "type": "TEXTAREA",
+          "label": "Notes (Optional)",
+          "rows": 3
+        },
+        {
+          "name": "TermsInput",
+          "type": "TEXTAREA",
+          "label": "Payment Terms (Optional)",
+          "rows": 2,
+          "placeholder": "e.g., Net 30, Due on receipt"
+        },
+        {
+          "name": "SubmitButton",
+          "type": "BUTTON",
+          "label": "Save & Issue Invoice",
+          "variant": "primary",
+          "onClick": "handleIssue"
+        },
+        {
+          "name": "SaveDraftButton",
+          "type": "BUTTON",
+          "label": "Save as Draft",
+          "variant": "secondary",
+          "onClick": "handleSaveDraft"
+        },
+        {
+          "name": "CancelButton",
+          "type": "BUTTON",
+          "label": "Cancel",
+          "variant": "ghost",
+          "onClick": "closeModal"
+        },
+        {
+          "name": "TaxSyncStatusBadge",
+          "type": "BADGE",
+          "states": {
+            "pending": { "label": "Tax sync pending", "color": "warning" },
+            "synced": { "label": "Synced to TIMS/EFRIS ✓", "color": "success" },
+            "failed": { "label": "Tax sync failed", "color": "danger" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PayrollFormModal",
+      "type": "MODAL",
+      "path": "/src/app/components/payroll/PayrollFormModal.tsx",
+      "width": "700px",
+      "integrations": {
+        "ledger": "postPayrollToLedger",
+        "audit": "logPayrollCreated",
+        "taxCalculator": "calculatePAYE"
+      },
+      "children": [
+        {
+          "name": "Header",
+          "type": "TEXT",
+          "dynamic": "Payroll Run - {month}/{year}",
+          "variant": "heading2"
+        },
+        {
+          "name": "EmployeeSelect",
+          "type": "DROPDOWN",
+          "label": "Employee",
+          "required": true,
+          "searchable": true,
+          "options": "dynamic (from employees API)"
+        },
+        {
+          "name": "GrossSalaryInput",
+          "type": "INPUT",
+          "inputType": "number",
+          "label": "Gross Salary",
+          "required": true,
+          "onChange": "recalculateTax"
+        },
+        {
+          "name": "TaxBreakdown",
+          "type": "GROUP",
+          "children": [
+            {
+              "name": "PAYEDisplay",
+              "type": "TEXT",
+              "label": "PAYE Tax",
+              "computed": "calculatePAYE(gross, country)",
+              "readonly": true
+            },
+            {
+              "name": "NHIFDisplay",
+              "type": "TEXT",
+              "label": "NHIF (Kenya only)",
+              "computed": "calculateNHIF(gross)",
+              "readonly": true,
+              "conditional": "country === 'KE'"
+            },
+            {
+              "name": "NSSFDisplay",
+              "type": "TEXT",
+              "label": "NSSF",
+              "computed": "calculateNSSF(gross, country)",
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "name": "TotalDeductionsDisplay",
+          "type": "TEXT",
+          "label": "Total Deductions",
+          "computed": "PAYE + NHIF + NSSF",
+          "readonly": true
+        },
+        {
+          "name": "NetSalaryDisplay",
+          "type": "TEXT",
+          "label": "Net Salary",
+          "computed": "gross - deductions",
+          "readonly": true,
+          "variant": "bold",
+          "size": "large"
+        },
+        {
+          "name": "SubmitButton",
+          "type": "BUTTON",
+          "label": "Process Payroll",
+          "variant": "primary",
+          "onClick": "handleProcess"
+        },
+        {
+          "name": "CancelButton",
+          "type": "BUTTON",
+          "label": "Cancel",
+          "variant": "secondary",
+          "onClick": "closeModal"
+        }
+      ]
+    },
+    {
+      "name": "InventoryFormModal",
+      "type": "MODAL",
+      "path": "/src/app/components/inventory/InventoryFormModal.tsx",
+      "width": "600px",
+      "integrations": {
+        "ledger": "postInventoryToLedger",
+        "audit": "logInventoryAdjustment",
+        "cogs": "calculateCOGS"
+      },
+      "children": [
+        {
+          "name": "Header",
+          "type": "TEXT",
+          "dynamic": "Inventory Adjustment",
+          "variant": "heading2"
+        },
+        {
+          "name": "ItemSelect",
+          "type": "DROPDOWN",
+          "label": "Item",
+          "required": true,
+          "searchable": true,
+          "options": "dynamic (from inventory items API)"
+        },
+        {
+          "name": "CurrentStockDisplay",
+          "type": "TEXT",
+          "label": "Current Stock",
+          "readonly": true,
+          "computed": "item.quantityOnHand"
+        },
+        {
+          "name": "AdjustmentTypeSelect",
+          "type": "DROPDOWN",
+          "label": "Adjustment Type",
+          "required": true,
+          "options": ["Purchase", "Sale", "Adjustment"]
+        },
+        {
+          "name": "QuantityInput",
+          "type": "INPUT",
+          "inputType": "number",
+          "label": "Quantity",
+          "required": true,
+          "onChange": "updateNewStock"
+        },
+        {
+          "name": "CostInput",
+          "type": "INPUT",
+          "inputType": "number",
+          "label": "Cost per Unit",
+          "required": true
+        },
+        {
+          "name": "NewStockDisplay",
+          "type": "TEXT",
+          "label": "New Stock Level",
+          "computed": "currentStock ± quantity",
+          "readonly": true
+        },
+        {
+          "name": "ReferenceInput",
+          "type": "INPUT",
+          "label": "Reference (Optional)",
+          "placeholder": "PO #, Invoice #"
+        },
+        {
+          "name": "SubmitButton",
+          "type": "BUTTON",
+          "label": "Save Adjustment",
+          "variant": "primary",
+          "onClick": "handleSubmit"
+        },
+        {
+          "name": "CancelButton",
+          "type": "BUTTON",
+          "label": "Cancel",
+          "variant": "secondary",
+          "onClick": "closeModal"
+        }
+      ]
+    },
+    {
+      "name": "AuditAndSyncUI",
+      "type": "FRAME",
+      "path": "/src/app/components/admin/AuditAndSync.tsx",
+      "children": [
+        {
+          "name": "AuditLogTable",
+          "type": "TABLE",
+          "path": "/src/app/components/admin/AuditLogTable.tsx",
+          "columns": [
+            { "field": "timestamp", "label": "Date/Time", "type": "datetime" },
+            { "field": "user", "label": "User", "type": "text" },
+            { "field": "action", "label": "Action", "type": "badge" },
+            { "field": "entityType", "label": "Entity", "type": "text" },
+            { "field": "description", "label": "Description", "type": "text" }
+          ],
+          "filters": ["dateRange", "user", "entityType", "action"],
+          "pagination": true,
+          "export": ["JSON", "CSV"]
+        },
+        {
+          "name": "TaxSyncQueueTable",
+          "type": "TABLE",
+          "path": "/src/app/components/admin/TaxSyncQueueTable.tsx",
+          "columns": [
+            { "field": "entity", "label": "Entity", "type": "text" },
+            { "field": "authority", "label": "Authority", "type": "badge" },
+            { "field": "status", "label": "Status", "type": "badge" },
+            { "field": "retries", "label": "Retries", "type": "number" },
+            { "field": "lastAttempt", "label": "Last Attempt", "type": "datetime" },
+            { "field": "actions", "label": "Actions", "type": "actions" }
+          ],
+          "actions": ["retry", "view_details"]
+        },
+        {
+          "name": "RetryButton",
+          "type": "BUTTON",
+          "label": "Retry Failed",
+          "variant": "primary",
+          "onClick": "retryFailedSyncs"
+        },
+        {
+          "name": "ManualSyncButton",
+          "type": "BUTTON",
+          "label": "Manual Sync",
+          "variant": "secondary",
+          "onClick": "manualSync"
+        }
+      ]
+    }
+  ]
+}

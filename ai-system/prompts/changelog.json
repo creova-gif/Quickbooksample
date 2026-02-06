@@ -1,0 +1,107 @@
+{
+  "prompts": {
+    "system": [
+      {
+        "id": "ea_architect",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "date": "2026-01-16",
+            "changes": [
+              "Initial release",
+              "Core product context",
+              "5 East African countries",
+              "3 deployment models",
+              "Pricing tiers defined"
+            ],
+            "breaking": false,
+            "status": "stable"
+          }
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "id": "sales_configuration",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "date": "2026-01-16",
+            "changes": [
+              "Initial sales agent configuration",
+              "Decision logic for deployment recommendation",
+              "Pricing calculation rules",
+              "Industry-specific considerations"
+            ],
+            "breaking": false,
+            "status": "stable"
+          }
+        ]
+      },
+      {
+        "id": "installer_generation",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "date": "2026-01-16",
+            "changes": [
+              "Electron installer generation logic",
+              "7-screen wizard flow",
+              "License validation rules",
+              "Docker deployment automation"
+            ],
+            "breaking": false,
+            "status": "stable"
+          }
+        ]
+      },
+      {
+        "id": "compliance_checklist",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "date": "2026-01-16",
+            "changes": [
+              "Country-specific compliance requirements",
+              "Tax system specifications",
+              "Audit readiness criteria"
+            ],
+            "breaking": false,
+            "status": "stable"
+          }
+        ]
+      }
+    ]
+  },
+  "versioning_policy": {
+    "patch": {
+      "description": "Bug fixes, wording improvements, non-functional changes",
+      "example": "1.0.0 → 1.0.1",
+      "breaking": false,
+      "auto_upgrade": true
+    },
+    "minor": {
+      "description": "New features, new modules, additional logic",
+      "example": "1.0.0 → 1.1.0",
+      "breaking": false,
+      "auto_upgrade": false
+    },
+    "major": {
+      "description": "Pricing changes, legal changes, core logic overhaul",
+      "example": "1.0.0 → 2.0.0",
+      "breaking": true,
+      "auto_upgrade": false
+    }
+  },
+  "client_assignments": {
+    "default": "latest",
+    "legacy_clients": [
+      {
+        "client_id": "example_client_1",
+        "prompt_version": "1.0.0",
+        "reason": "Contracted with v1.0 pricing",
+        "upgrade_date": "2027-01-01"
+      }
+    ]
+  }
+}

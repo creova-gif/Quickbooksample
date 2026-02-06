@@ -1,0 +1,205 @@
+{
+  "task_id": "sales_configuration",
+  "version": "1.0.0",
+  "role": "user",
+  "description": "Sales engineer agent that recommends deployment, licensing, and pricing",
+  
+  "input_schema": {
+    "required": [
+      "company_size",
+      "industry",
+      "countries"
+    ],
+    "optional": [
+      "data_volume",
+      "deployment_preference",
+      "offline_required",
+      "modules_needed",
+      "budget_range",
+      "timeline"
+    ],
+    "types": {
+      "company_size": ["1-10", "11-50", "51-200", "201-500", "500+"],
+      "industry": ["retail", "services", "ngo", "government", "manufacturing", "hospitality", "other"],
+      "countries": ["KE", "UG", "TZ", "RW", "BI"],
+      "data_volume": ["low", "medium", "high"],
+      "deployment_preference": ["cloud", "private", "onprem", "undecided"],
+      "offline_required": ["boolean"],
+      "modules_needed": ["accounting", "invoicing", "tax", "payroll", "inventory"],
+      "budget_range": ["<5k", "5k-20k", "20k-50k", "50k+"],
+      "timeline": ["immediate", "1-3_months", "3-6_months", "6+_months"]
+    }
+  },
+
+  "instructions": [
+    "Act as an enterprise sales engineer with deep knowledge of accounting software and East African markets",
+    "Analyze the client profile and recommend the optimal deployment model",
+    "Protect revenue by recommending appropriate pricing tiers",
+    "Never recommend on-premise for small businesses unless offline access is critical",
+    "Always recommend Professional or Enterprise tier for government/NGOs",
+    "Factor in compliance complexity when pricing",
+    "Provide clear justification for each recommendation",
+    "Structure output as actionable proposal ready for client review"
+  ],
+
+  "decision_logic": {
+    "deployment": {
+      "cloud": {
+        "triggers": [
+          "company_size: 1-10",
+          "deployment_preference: cloud",
+          "budget_range: <5k",
+          "offline_required: false"
+        ],
+        "min_price": 49
+      },
+      "private": {
+        "triggers": [
+          "company_size: 11-50 OR 51-200",
+          "industry: professional_services OR healthcare",
+          "data_volume: medium OR high",
+          "security_concerns: high"
+        ],
+        "min_price": 299
+      },
+      "onprem": {
+        "triggers": [
+          "company_size: 201+",
+          "industry: government OR ngo",
+          "offline_required: true",
+          "deployment_preference: onprem",
+          "data_sovereignty_required: true"
+        ],
+        "min_price": 1999
+      }
+    },
+    "license_tier": {
+      "starter": {
+        "max_users": 5,
+        "modules": ["accounting", "invoicing", "tax"],
+        "support": "email",
+        "pricing_multiplier": 1.0
+      },
+      "professional": {
+        "max_users": 25,
+        "modules": ["accounting", "invoicing", "tax", "payroll"],
+        "support": "email_chat",
+        "pricing_multiplier": 2.5
+      },
+      "enterprise": {
+        "max_users": "unlimited",
+        "modules": ["all"],
+        "support": "sla_backed",
+        "pricing_multiplier": 5.0
+      }
+    }
+  },
+
+  "output_schema": {
+    "recommended_deployment": "cloud | private | onprem",
+    "license_tier": "starter | professional | enterprise",
+    "user_limit": "number",
+    "modules": ["array of module IDs"],
+    "pricing": {
+      "setup_fee": "number",
+      "license_fee": "number (monthly or annual)",
+      "billing_frequency": "monthly | annual",
+      "module_addons": {
+        "payroll": "number",
+        "inventory": "number"
+      },
+      "total_first_year": "number",
+      "total_annual_recurring": "number"
+    },
+    "migration": {
+      "required": "boolean",
+      "estimate_hours": "number",
+      "estimate_cost": "number"
+    },
+    "implementation": {
+      "timeline_weeks": "number",
+      "training_included": "boolean",
+      "data_migration_included": "boolean"
+    },
+    "justification": [
+      "array of reason strings"
+    ],
+    "upsell_opportunities": [
+      "array of module/feature suggestions"
+    ],
+    "next_steps": [
+      "array of action items"
+    ]
+  },
+
+  "examples": [
+    {
+      "input": {
+        "company_size": "11-50",
+        "industry": "retail",
+        "countries": ["KE"],
+        "offline_required": false,
+        "modules_needed": ["accounting", "invoicing", "tax", "inventory"]
+      },
+      "expected_output": {
+        "recommended_deployment": "cloud",
+        "license_tier": "professional",
+        "user_limit": 25,
+        "modules": ["accounting", "invoicing", "tax", "inventory"],
+        "pricing": {
+          "setup_fee": 500,
+          "license_fee": 149,
+          "billing_frequency": "monthly",
+          "module_addons": {
+            "inventory": 19
+          },
+          "total_first_year": 2516,
+          "total_annual_recurring": 2016
+        },
+        "justification": [
+          "Cloud deployment suits retail with online connectivity",
+          "Professional tier supports growing team (11-50 users)",
+          "Inventory module essential for retail operations",
+          "TIMS compliance included for Kenya"
+        ]
+      }
+    },
+    {
+      "input": {
+        "company_size": "201-500",
+        "industry": "ngo",
+        "countries": ["KE", "UG"],
+        "offline_required": true,
+        "modules_needed": ["accounting", "invoicing", "tax", "payroll"]
+      },
+      "expected_output": {
+        "recommended_deployment": "onprem",
+        "license_tier": "enterprise",
+        "user_limit": "unlimited",
+        "modules": ["accounting", "invoicing", "tax", "payroll"],
+        "pricing": {
+          "setup_fee": 5000,
+          "license_fee": 15000,
+          "billing_frequency": "annual",
+          "module_addons": {
+            "payroll": 0
+          },
+          "total_first_year": 20000,
+          "total_annual_recurring": 15000
+        },
+        "migration": {
+          "required": true,
+          "estimate_hours": 40,
+          "estimate_cost": 4000
+        },
+        "justification": [
+          "On-premise deployment required for offline field operations",
+          "Enterprise tier appropriate for NGO scale (200+ users)",
+          "Multi-country compliance (Kenya TIMS + Uganda EFRIS)",
+          "Payroll included for staff management",
+          "Data sovereignty for grant reporting"
+        ]
+      }
+    }
+  ]
+}
