@@ -6,9 +6,13 @@ import { InvoiceManager } from '../invoices/InvoiceManager';
 import { Reports } from '../reports/Reports';
 import { Settings } from './Settings';
 import { ReceiptOCR } from '../receipts/ReceiptOCR';
-import { SalesConfigurator } from '../sales/SalesConfigurator'; // Admin only
-import { ProposalRequestForm } from '../proposals/ProposalRequestForm'; // Customer facing
-import { ProposalManagement } from '../proposals/ProposalManagement'; // Admin only
+import { SalesConfigurator } from '../sales/SalesConfigurator';
+import { ProposalRequestForm } from '../proposals/ProposalRequestForm';
+import { ProposalManagement } from '../proposals/ProposalManagement';
+import { BookingManager } from '../bookings/BookingManager';
+import { MultiCurrencyWallet } from '../wallets/MultiCurrencyWallet';
+import { GuestCommunication } from '../communications/GuestCommunication';
+import { AIPricingRecommendations } from '../pricing/AIPricingRecommendations';
 import { TransactionFormModal } from '../transactions/TransactionFormModal';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
@@ -25,9 +29,13 @@ import {
   User,
   CheckCircle,
   Camera,
-  TrendingUp, // Admin: Sales Configurator
-  Send, // Customer: Request Quote
-  Inbox, // Admin: View Proposals
+  TrendingUp,
+  Send,
+  Inbox,
+  Calendar,
+  Wallet,
+  Mail,
+  Sparkles,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -46,7 +54,7 @@ import {
   SheetTrigger,
 } from '@/app/components/ui/sheet';
 
-type View = 'dashboard' | 'transactions' | 'invoices' | 'reports' | 'receipts' | 'settings' | 'sales' | 'proposals'; // NEW: Added 'sales' and 'proposals'
+type View = 'dashboard' | 'transactions' | 'invoices' | 'reports' | 'receipts' | 'settings' | 'sales' | 'proposals' | 'bookings' | 'wallets' | 'communications' | 'pricing';
 
 interface MenuItem {
   id: View;
@@ -57,12 +65,16 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, mobileLabel: 'Home' },
+  { id: 'bookings', label: 'Bookings', icon: Calendar, mobileLabel: 'Bookings' },
   { id: 'transactions', label: 'Transactions', icon: Receipt, mobileLabel: 'Money' },
   { id: 'invoices', label: 'Invoices', icon: FileText },
+  { id: 'wallets', label: 'Wallets', icon: Wallet, mobileLabel: 'Wallets' },
+  { id: 'communications', label: 'Guest Messages', icon: Mail, mobileLabel: 'Messages' },
+  { id: 'pricing', label: 'AI Pricing', icon: Sparkles, mobileLabel: 'Pricing' },
   { id: 'receipts', label: 'Receipts', icon: Camera, mobileLabel: 'Scan' },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
-  { id: 'sales', label: 'Sales Tool', icon: TrendingUp, mobileLabel: 'Sales' }, // NEW: AI Sales Configurator
-  { id: 'proposals', label: 'Proposals', icon: Inbox, mobileLabel: 'Proposals' }, // NEW: Proposals
+  { id: 'sales', label: 'Sales Tool', icon: TrendingUp, mobileLabel: 'Sales' },
+  { id: 'proposals', label: 'Proposals', icon: Inbox, mobileLabel: 'Proposals' },
   { id: 'settings', label: 'Settings', icon: SettingsIcon, mobileLabel: 'More' },
 ];
 
@@ -221,8 +233,12 @@ export function EnhancedDashboard() {
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 max-w-7xl mx-auto w-full">
           {currentView === 'dashboard' && <EnhancedDashboardComplete />}
+          {currentView === 'bookings' && <BookingManager />}
           {currentView === 'transactions' && <MobileTransactionList />}
           {currentView === 'invoices' && <InvoiceManager />}
+          {currentView === 'wallets' && <MultiCurrencyWallet />}
+          {currentView === 'communications' && <GuestCommunication />}
+          {currentView === 'pricing' && <AIPricingRecommendations />}
           {currentView === 'reports' && <Reports />}
           {currentView === 'receipts' && <ReceiptOCR />}
           {currentView === 'settings' && <Settings />}
