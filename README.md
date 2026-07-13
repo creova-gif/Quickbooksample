@@ -2,6 +2,16 @@
 
 A comprehensive, **QuickBooks-level accounting platform** built specifically for East Africa (Kenya, Tanzania, Uganda, Rwanda, Burundi).
 
+## Quickstart
+
+```bash
+git clone https://github.com/creova-gif/east-africa-accounting.git
+cd east-africa-accounting
+npm install
+npm run dev
+```
+
+
 ## 🌍 Built for East Africa
 
 Unlike adapted solutions, this platform is **purpose-built** with:
