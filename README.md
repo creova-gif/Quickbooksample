@@ -55,6 +55,8 @@ Unlike adapted solutions, this platform is **purpose-built** with:
 
 ## 📱 Screenshots
 
+![East Africa Accounting dashboard](docs/screenshots/dashboard.png)
+
 ### Dashboard
 - Money In/Out statistics
 - Profit margin tracking
